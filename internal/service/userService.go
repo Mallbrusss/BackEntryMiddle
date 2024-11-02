@@ -1,31 +1,35 @@
 package service
 
 import (
-
+	"internal/models"
+	"internal/repository"
+	"github.com/Mallbrusss/BackEntryMiddle/pkg/utils"
 )
 
-type UserService struct{
-	jwt []byte
+type UserService struct {
+	userRepository *repository.UserRepository
+	authToken      string
 }
 
-func NewUserService(jwt []byte) *UserService{
+func NewUserService(userRepository *repository.UserRepository, authToken string) *UserService {
 	return &UserService{
-		jwt: jwt,
+		userRepository: userRepository,
+		authToken:      authToken,
 	}
 }
 
-func (us *UserService) Register(){
+func (us *UserService) Register(login, password string) (*models.User, error) {
 
 }
 
-func (us *UserService) Authenticate(){
+func (us *UserService) Authenticate() {
 
 }
 
-func (us *UserService) GetUserByUsername(){
-	
+func (us *UserService) GetUserByUsername() {
+
 }
 
-func (us *UserService) ValidateToken(){
+func (us *UserService) ValidateToken() {
 
 }

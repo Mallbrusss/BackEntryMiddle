@@ -118,7 +118,6 @@ paths:
                         type: object
                       file:
                         type: string
-  /api/docs:
     get:
       summary: Получение списка документов
       parameters:
@@ -205,7 +204,6 @@ paths:
                         type: string
                       mime:
                         type: string
-  /api/docs/{id}:
     delete:
       summary: Удаление документа
       parameters:
