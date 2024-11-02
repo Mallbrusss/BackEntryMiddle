@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: Document Management API
+  description: API для управления документами и пользователями
+  version: "1.0.0"
+paths:
+  /api/register:
+    post:
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: Токен администратора
+                login:
+                  type: string
+                  description: Логин нового пользователя
+                pswd:
+                  type: string
+                  description: Пароль нового пользователя
+              required:
+                - token
+                - login
+                - pswd
+      responses:
+        '200':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: object
+                    properties:
+                      login:
+                        type: string
+                        description: Логин зарегистрированного пользователя
+  /api/auth:
+    post:
+      summary: Аутентификация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: Логин пользователя
+                pswd:
+                  type: string
+                  description: Пароль пользователя
+              required:
+                - login
+                - pswd
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: JWT-токен для доступа
+  /api/docs:
+    post:
+      summary: Загрузка нового документа
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                meta:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    file:
+                      type: boolean
+                    public:
+                      type: boolean
+                    token:
+                      type: string
+                    mime:
+                      type: string
+                    grant:
+                      type: array
+                      items:
+                        type: string
+              required:
+                - meta
+      responses:
+        '200':
+          description: Документ успешно загружен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      json:
+                        type: object
+                      file:
+                        type: string
+  /api/docs:
+    get:
+      summary: Получение списка документов
+      parameters:
+        - in: query
+          name: token
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: login
+          schema:
+            type: string
+          description: Логин пользователя (опционально)
+        - in: query
+          name: key
+          schema:
+            type: string
+        - in: query
+          name: value
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список документов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      docs:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            mime:
+                              type: string
+                            file:
+                              type: boolean
+                            public:
+                              type: boolean
+                            created:
+                              type: string
+                            grant:
+                              type: array
+                              items:
+                                type: string
+  /api/docs/{id}:
+    get:
+      summary: Получение одного документа
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Документ найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      file:
+                        type: string
+                      mime:
+                        type: string
+  /api/docs/{id}:
+    delete:
+      summary: Удаление документа
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Документ удален
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: ID удаленного документа
+  /api/auth/{token}:
+    delete:
+      summary: Завершение сессии работы
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Сессия завершена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
