@@ -23,7 +23,7 @@ func (ur *UserRepository) CreateUser(user *models.User)error{
 func (ur *UserRepository) FindUser(username string)(*models.User, error){
 	var user models.User
 
-	if err := ur.db.Where("username = ?", username).First(&user).Error; err != nil{
+	if err := ur.db.Where("login = ?", username).First(&user).Error; err != nil{
 		return nil, err
 	}
 	return &user, nil

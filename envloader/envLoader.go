@@ -1,4 +1,4 @@
-package envbalancer
+package envloader
 
 import (
 	"log"

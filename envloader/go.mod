@@ -1,4 +1,4 @@
-module envbalancer
+module envloader
 
 go 1.22.3
 

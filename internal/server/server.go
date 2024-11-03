@@ -1,10 +1,10 @@
 package server
 
 import (
-	"backEntryMiddle/config"
 	"internal/repository"
 	"internal/service"
 	"internal/handlers"
+	inPg "internal/storage/postgres"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func NewServer() *Server {
 
 func (s *Server) Run() {
 
-	db := config.NewPostgresConfig().InitDB()
+	db := inPg.InitDB()
 	userRepo := repository.NewUserRepository(db)
 
 	userService := service.NewUserService(userRepo)

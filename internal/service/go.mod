@@ -8,10 +8,7 @@ replace internal/repository => ./../repository
 
 replace pkg/utils => ./../../pkg/utils
 
-require (
-	internal/models v0.0.0-00010101000000-000000000000
-	pkg/utils v0.0.0-00010101000000-000000000000
-)
+require internal/models v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
