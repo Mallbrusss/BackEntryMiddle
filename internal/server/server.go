@@ -1,7 +1,10 @@
 package server
 
 import (
-	"net/http"
+	"backEntryMiddle/config"
+	"internal/repository"
+	"internal/service"
+	"internal/handlers"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,11 +19,17 @@ func NewServer() *Server {
 	}
 }
 
+func (s *Server) Run() {
 
-func (s *Server) Run(){
-	s.e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "hello test")
-	})
+	db := config.NewPostgresConfig().InitDB()
+	userRepo := repository.NewUserRepository(db)
 
+	userService := service.NewUserService(userRepo)
+	userHandlers := handlers.NewUserHandlers(userService)
+
+	s.e.POST("/api/register", userHandlers.Register)
+	s.e.POST("/api/auth", userHandlers.Authenticate)
+
+	// s.e.Use(middleware.AuthMiddleWare())
 	s.e.Logger.Fatal(s.e.Start(":8080"))
 }

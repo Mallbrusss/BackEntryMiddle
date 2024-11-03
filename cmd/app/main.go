@@ -7,14 +7,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init(){
-	if err := godotenv.Load; err!= nil{
-		log.Println(".env file not found")
-	}
+func init() {
+
 }
 
-func main(){
-
+func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Println(".env file not found")
+	}
+	
 	serv := server.NewServer()
-	serv.Run() 
+	serv.Run()
 }
