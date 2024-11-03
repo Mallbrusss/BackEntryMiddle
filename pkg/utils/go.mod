@@ -1,3 +1,3 @@
-module github.com/Mallbrusss/BackEntryMiddle/pkg/utils
+module utils
 
 go 1.23.1
