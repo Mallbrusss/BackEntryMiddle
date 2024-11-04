@@ -5,12 +5,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/Mallbrusss/BackEntryMiddle/models"
 
-	"internal/models"
-
+	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloaders"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"backEntryMiddle/envloader"
 )
 
 //TODO: Инициализировать таблицы
@@ -40,6 +39,7 @@ func InitDB() *gorm.DB {
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Document{})
+	db.AutoMigrate(&models.DocumentAccess{})
 
 	return db
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"internal/server"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/server"
 )
 
 func init() {

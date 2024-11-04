@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"internal/models"
+	"github.com/Mallbrusss/BackEntryMiddle/models"
 )
 
 func AuthMiddleWare(authToken string) echo.MiddlewareFunc {
