@@ -15,14 +15,13 @@ import (
 type DocumentService struct {
 	docRepo   *repository.DocumentRepository
 	uploadDir string
-	wg        sync.WaitGroup
+	
 }
 
 func NewDocumentService(dockRepo *repository.DocumentRepository, uploadDir string) *DocumentService {
 	return &DocumentService{
 		docRepo:   dockRepo,
 		uploadDir: uploadDir,
-		wg:        sync.WaitGroup{},
 	}
 }
 
@@ -34,8 +33,10 @@ func (ds *DocumentService) getFileExtensions(mimeType string)string{
 	}
 	return ext[0]
 }
+
 func (ds *DocumentService) UploadDocument(document *models.Document, fileData []byte, grant []string) (*models.Document, error) {
-	ds.wg.Add(2)
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 
 	errorCh := make(chan error, 3)
 	filePathCh := make(chan string, 1)
@@ -45,7 +46,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	filePath := filepath.Join(ds.uploadDir, fileName)
 
 	go func() {
-		defer ds.wg.Done()
+		defer wg.Done()
 		if err := os.WriteFile(filePath, fileData, 0644); err != nil {
 			errorCh <- fmt.Errorf("error write file: %w", err)
 			return
@@ -54,7 +55,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	}()
 
 	go func() {
-		defer ds.wg.Done()
+		defer wg.Done()
 		document.ID = uuid.New().String()
 		err := ds.docRepo.CreateDocument(document, grant)
 		if err != nil {
@@ -63,9 +64,9 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	}()
 
 	for _, login := range grant {
-		ds.wg.Add(1)
+		wg.Add(1)
 		go func(login string) {
-			defer ds.wg.Done()
+			defer wg.Done()
 			access := models.DocumentAccess{
 				ID:    document.ID,
 				Login: login,
@@ -77,7 +78,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 
 	}
 
-	ds.wg.Wait()
+	wg.Wait()
 	close(errorCh)
 	close(filePathCh)
 
@@ -95,6 +96,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 			if removeErr != nil && !os.IsNotExist(removeErr) {
 				return nil, fmt.Errorf("error delete file after error: %v, %v", fError, removeErr)
 			}
+		//TODO: Файлы в бд не удаляются?
 		default:
 		}
 		return nil, fError

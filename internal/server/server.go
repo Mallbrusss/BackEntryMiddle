@@ -38,7 +38,7 @@ func (s *Server) Run() {
 
 	docRepo := repository.NewDocumentRepository(db)
 	dockService := service.NewDocumentService(docRepo, uploadDir)
-	docHandler := handlers.MewDocumentHandler(dockService)
+	docHandler := handlers.NewDocumentHandler(dockService)
 
 	// user  endpoints
 	s.e.POST("/api/register", userHandlers.Register)

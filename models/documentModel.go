@@ -19,7 +19,7 @@ type Document struct {
 	UpdatedAt time.Time
 }
 
-
+// TODO: мб сделать композитный ключ
 type DocumentAccess struct {
 	gorm.Model
 	PkID uint `gorm:"primaryKey"`

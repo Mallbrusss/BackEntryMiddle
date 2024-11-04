@@ -20,7 +20,6 @@ func (dr *DocumentRepository) CreateDocument(document *models.Document, grant []
 	if err != nil {
 		return err
 	}
-
 	for _, login := range grant {
 		access := models.DocumentAccess{
 			ID:    document.ID,
@@ -75,3 +74,5 @@ func (dr *DocumentRepository) DeleteDocument(document *models.Document) error {
 func (dr *DocumentRepository) CreateAccess(access *models.DocumentAccess) error {
 	return dr.db.Create(access).Error
 }
+
+//TODO: Добавить транзакции

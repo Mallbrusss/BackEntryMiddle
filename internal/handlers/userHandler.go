@@ -71,6 +71,6 @@ func (uh UserHandler) Authenticate(c echo.Context) error {
 	c.Response().Header().Set("Authorization", user.Token)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"responce": user.Token,
+		"response": user.Token,
 	})
 }
