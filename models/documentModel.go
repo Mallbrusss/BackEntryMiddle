@@ -14,22 +14,16 @@ type Document struct {
 	FilePath  string    `json:"-" gorm:"size:500;not null"`
 	File      bool      `json:"file" gorm:"not null;default:false"`
 	Public    bool      `json:"public" gorm:"not null;default:false"`
-	Token     string    `json:"token" gorm:"-"` // Токен есть в хэдере??
+	Token     string    `json:"token" gorm:"-"`
 	CreatedAt time.Time `json:"created"`
 	UpdatedAt time.Time
-	Grant     []string `json:"grant" gorm:"foreignKey:DocumentID"`
 }
 
-// type Data struct {
-// 	Json struct{} `json:"json"` //??
-// 	File string   `json:"file"`
-// }
-
-type Docs map[string]Document // ??
 
 type DocumentAccess struct {
 	gorm.Model
-	DocumentID string `gorm:"not null;index"`
+	PkID uint `gorm:"primaryKey"`
+	ID string `gorm:"not null;index"`
 	Login      string `gorm:"size:255;not null;index"`
 }
 

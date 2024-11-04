@@ -23,8 +23,8 @@ func (dr *DocumentRepository) CreateDocument(document *models.Document, grant []
 
 	for _, login := range grant {
 		access := models.DocumentAccess{
-			DocumentID: document.ID,
-			Login:      login,
+			ID:    document.ID,
+			Login: login,
 		}
 		if err := dr.db.Create(&access).Error; err != nil {
 			return err
@@ -70,4 +70,8 @@ func (dr *DocumentRepository) DeleteDocument(document *models.Document) error {
 		return err
 	}
 	return dr.db.Delete(document).Error
+}
+
+func (dr *DocumentRepository) CreateAccess(access *models.DocumentAccess) error {
+	return dr.db.Create(access).Error
 }

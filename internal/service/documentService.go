@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"internal/models"
 	"internal/repository"
+	"mime"
 	"os"
 	"path/filepath"
 	"sync"
@@ -25,19 +26,26 @@ func NewDocumentService(dockRepo *repository.DocumentRepository, uploadDir strin
 	}
 }
 
-// TODO: Мб подавать на вход структуру?? Подумать
-// TODO: подумать, над fileName или как хранить одинаковые файлы
+
+func (ds *DocumentService) getFileExtensions(mimeType string)string{
+	ext, err := mime.ExtensionsByType(mimeType)
+	if err != nil || len(ext) == 0{
+		return ".bin"
+	}
+	return ext[0]
+}
 func (ds *DocumentService) UploadDocument(document *models.Document, fileData []byte, grant []string) (*models.Document, error) {
 	ds.wg.Add(2)
 
-	errorCh := make(chan error, 2)
+	errorCh := make(chan error, 3)
 	filePathCh := make(chan string, 1)
+
+	ext := ds.getFileExtensions(document.Mime)
+	fileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
+	filePath := filepath.Join(ds.uploadDir, fileName)
 
 	go func() {
 		defer ds.wg.Done()
-		fileName := fmt.Sprintf("%s%s", uuid.New().String(), filepath.Ext(document.Name))
-		filePath := filepath.Join(ds.uploadDir, fileName)
-
 		if err := os.WriteFile(filePath, fileData, 0644); err != nil {
 			errorCh <- fmt.Errorf("error write file: %w", err)
 			return
@@ -47,11 +55,27 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 
 	go func() {
 		defer ds.wg.Done()
+		document.ID = uuid.New().String()
 		err := ds.docRepo.CreateDocument(document, grant)
 		if err != nil {
 			errorCh <- fmt.Errorf("error save to database: %w", err)
 		}
 	}()
+
+	for _, login := range grant {
+		ds.wg.Add(1)
+		go func(login string) {
+			defer ds.wg.Done()
+			access := models.DocumentAccess{
+				ID:    document.ID,
+				Login: login,
+			}
+			if err := ds.docRepo.CreateAccess(&access); err != nil {
+				errorCh <- fmt.Errorf("error save access to database for %s: %w", login, err)
+			}
+		}(login)
+
+	}
 
 	ds.wg.Wait()
 	close(errorCh)
