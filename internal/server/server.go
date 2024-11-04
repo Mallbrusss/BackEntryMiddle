@@ -1,10 +1,10 @@
 package server
 
 import (
-	"internal/handlers"
-	"internal/repository"
-	"internal/service"
-	inPg "internal/storage/postgres"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/handlers"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
+	inPg "github.com/Mallbrusss/BackEntryMiddle/internal/storage/postgres"
 	"log"
 	"os"
 

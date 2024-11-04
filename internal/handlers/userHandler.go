@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"internal/service"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 
-	"internal/models"
+	"github.com/Mallbrusss/BackEntryMiddle/models"
 )
 
 type UserHandler struct {

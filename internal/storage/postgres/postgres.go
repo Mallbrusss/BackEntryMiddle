@@ -5,12 +5,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/Mallbrusss/BackEntryMiddle/models"
 
-	"internal/models"
-
+	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloaders"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"backEntryMiddle/envloader"
 )
 
 //TODO: Инициализировать таблицы

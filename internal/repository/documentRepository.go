@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"internal/models"
+	"github.com/Mallbrusss/BackEntryMiddle/models"
 
 	"gorm.io/gorm"
 )

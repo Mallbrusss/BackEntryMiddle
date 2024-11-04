@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"internal/models"
+	"github.com/Mallbrusss/BackEntryMiddle/models"
 
 	"gorm.io/gorm"
 )

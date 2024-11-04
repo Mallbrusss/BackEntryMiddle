@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"internal/models"
-	"internal/repository"
+	"github.com/Mallbrusss/BackEntryMiddle/models"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
 	"mime"
 	"os"
 	"path/filepath"
@@ -15,7 +15,6 @@ import (
 type DocumentService struct {
 	docRepo   *repository.DocumentRepository
 	uploadDir string
-	
 }
 
 func NewDocumentService(dockRepo *repository.DocumentRepository, uploadDir string) *DocumentService {
@@ -25,10 +24,9 @@ func NewDocumentService(dockRepo *repository.DocumentRepository, uploadDir strin
 	}
 }
 
-
-func (ds *DocumentService) getFileExtensions(mimeType string)string{
+func (ds *DocumentService) getFileExtensions(mimeType string) string {
 	ext, err := mime.ExtensionsByType(mimeType)
-	if err != nil || len(ext) == 0{
+	if err != nil || len(ext) == 0 {
 		return ".bin"
 	}
 	return ext[0]

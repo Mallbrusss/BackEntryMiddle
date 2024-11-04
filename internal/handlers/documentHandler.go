@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"internal/models"
-	"internal/service"
+	"github.com/Mallbrusss/BackEntryMiddle/models"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
 
 	"net/http"
 
@@ -64,7 +64,7 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 	// Создаем документ
 	document := &models.Document{
 		Name:     meta.Name,
-		Mime:     mimeType, // Используем определенный MIME-тип
+		Mime:     mimeType,
 		Public:   meta.Public,
 		FilePath: "",
 	}
