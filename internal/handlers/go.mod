@@ -19,6 +19,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
@@ -32,5 +33,4 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 	gorm.io/gorm v1.25.12 // indirect
 	internal/repository v0.0.0-00010101000000-000000000000 // indirect
-	pkg/utils v0.0.0-00010101000000-000000000000 // indirect
 )

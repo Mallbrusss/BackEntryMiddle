@@ -10,7 +10,7 @@ import (
 
 type UserService struct {
 	userRepository *repository.UserRepository
-	authToken      string
+	// authToken      string
 }
 
 func NewUserService(userRepository *repository.UserRepository) *UserService {

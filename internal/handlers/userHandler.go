@@ -23,8 +23,8 @@ func (uh UserHandler) Register(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 
 		errResp := models.ErrorResponce{
-			Code: http.StatusBadRequest,
-			Text: "Invalid request",
+			Code: 123,
+			Text: "So sad",
 		}
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"error": errResp,
@@ -32,10 +32,10 @@ func (uh UserHandler) Register(c echo.Context) error {
 	}
 
 	user, err := uh.UserService.Register(req.Login, req.Password, req.Token)
-	if err != nil{
+	if err != nil {
 		errResp := models.ErrorResponce{
-			Code: http.StatusBadRequest,
-			Text: "Invalid request",
+			Code: 123,
+			Text: "So sad",
 		}
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"error": errResp,
@@ -51,10 +51,10 @@ func (uh UserHandler) Register(c echo.Context) error {
 func (uh UserHandler) Authenticate(c echo.Context) error {
 	var req models.User
 
-	if err := c.Bind(&req); err != nil{
+	if err := c.Bind(&req); err != nil {
 		errResp := models.ErrorResponce{
-			Code: http.StatusBadRequest,
-			Text: "Invalid request",
+			Code: 123,
+			Text: "So sad",
 		}
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": errResp})
 	}
@@ -62,13 +62,13 @@ func (uh UserHandler) Authenticate(c echo.Context) error {
 	user, err := uh.UserService.Authenticate(req.Login, req.Password)
 	if err != nil {
 		errResp := models.ErrorResponce{
-			Code: http.StatusUnauthorized,
-			Text: "Authentication failed",
+			Code: 123,
+			Text: "So sad",
 		}
-        return c.JSON(http.StatusUnauthorized, echo.Map{"error": errResp})
-    }
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": errResp})
+	}
 
-	c.Request().Header.Set("Authorization", user.Token)
+	c.Response().Header().Set("Authorization", user.Token)
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"responce": user.Token,
