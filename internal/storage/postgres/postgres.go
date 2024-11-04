@@ -7,7 +7,7 @@ import (
 
 	"github.com/Mallbrusss/BackEntryMiddle/models"
 
-	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloaders"
+	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloader"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
