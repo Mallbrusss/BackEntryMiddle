@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+
 	"github.com/Mallbrusss/BackEntryMiddle/models"
 
 	"gorm.io/gorm"
@@ -16,19 +17,32 @@ func NewDocumentRepository(db *gorm.DB) *DocumentRepository {
 }
 
 func (dr *DocumentRepository) CreateDocument(document *models.Document, grant []string) error {
-	err := dr.db.Create(document).Error
+	tx := dr.db.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	err := tx.Create(document).Error
 	if err != nil {
 		return err
 	}
+	var accesses []models.DocumentAccess
 	for _, login := range grant {
-		access := models.DocumentAccess{
+		accesses = append(accesses, models.DocumentAccess{
 			ID:    document.ID,
 			Login: login,
-		}
-		if err := dr.db.Create(&access).Error; err != nil {
-			return err
-		}
+		})
 	}
+
+	if err := tx.Create(&accesses).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -75,4 +89,3 @@ func (dr *DocumentRepository) CreateAccess(access *models.DocumentAccess) error 
 	return dr.db.Create(access).Error
 }
 
-//TODO: Добавить транзакции

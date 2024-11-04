@@ -36,7 +36,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	errorCh := make(chan error, 3)
+	errorCh := make(chan error, 2)
 	filePathCh := make(chan string, 1)
 
 	ext := ds.getFileExtensions(document.Mime)
@@ -61,21 +61,6 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 		}
 	}()
 
-	for _, login := range grant {
-		wg.Add(1)
-		go func(login string) {
-			defer wg.Done()
-			access := models.DocumentAccess{
-				ID:    document.ID,
-				Login: login,
-			}
-			if err := ds.docRepo.CreateAccess(&access); err != nil {
-				errorCh <- fmt.Errorf("error save access to database for %s: %w", login, err)
-			}
-		}(login)
-
-	}
-
 	wg.Wait()
 	close(errorCh)
 	close(filePathCh)
@@ -94,7 +79,6 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 			if removeErr != nil && !os.IsNotExist(removeErr) {
 				return nil, fmt.Errorf("error delete file after error: %v, %v", fError, removeErr)
 			}
-		//TODO: Файлы в бд не удаляются?
 		default:
 		}
 		return nil, fError
