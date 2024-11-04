@@ -1,14 +1,17 @@
 package server
 
 import (
-	"github.com/Mallbrusss/BackEntryMiddle/internal/handlers"
-	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
-	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
-	inPg "github.com/Mallbrusss/BackEntryMiddle/internal/storage/postgres"
 	"log"
 	"os"
 
+	"github.com/Mallbrusss/BackEntryMiddle/internal/handlers"
+	// customMiddleware "github.com/Mallbrusss/BackEntryMiddle/internal/middleware"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
+	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
+	inPg "github.com/Mallbrusss/BackEntryMiddle/internal/storage/postgres"
+
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type Server struct {
@@ -40,6 +43,10 @@ func (s *Server) Run() {
 	dockService := service.NewDocumentService(docRepo, uploadDir)
 	docHandler := handlers.NewDocumentHandler(dockService)
 
+
+	s.e.Use(middleware.Logger())
+	s.e.Use(middleware.Recover())
+
 	// user  endpoints
 	s.e.POST("/api/register", userHandlers.Register)
 	s.e.POST("/api/auth", userHandlers.Authenticate)
@@ -51,6 +58,5 @@ func (s *Server) Run() {
 	// s.e.GET("/api/docs/:id") TODO: Доделать
 	// s.e.DELETE("/api/docs/:id") TODO: Доделать
 
-	// s.e.Use(middleware.AuthMiddleWare())
 	s.e.Logger.Fatal(s.e.Start(":8080"))
 }

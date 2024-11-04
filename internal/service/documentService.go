@@ -36,8 +36,8 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	errorCh := make(chan error, 3)
-	filePathCh := make(chan string, 1)
+	errorCh := make(chan error, 2)
+	// filePathCh := make(chan string, 1)
 
 	ext := ds.getFileExtensions(document.Mime)
 	fileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
@@ -49,7 +49,6 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 			errorCh <- fmt.Errorf("error write file: %w", err)
 			return
 		}
-		filePathCh <- filePath
 	}()
 
 	go func() {
@@ -61,24 +60,8 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 		}
 	}()
 
-	for _, login := range grant {
-		wg.Add(1)
-		go func(login string) {
-			defer wg.Done()
-			access := models.DocumentAccess{
-				ID:    document.ID,
-				Login: login,
-			}
-			if err := ds.docRepo.CreateAccess(&access); err != nil {
-				errorCh <- fmt.Errorf("error save access to database for %s: %w", login, err)
-			}
-		}(login)
-
-	}
-
 	wg.Wait()
 	close(errorCh)
-	close(filePathCh)
 
 	var fError error
 	for err := range errorCh {
@@ -88,19 +71,14 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	}
 
 	if fError != nil {
-		select {
-		case filepath := <-filePathCh:
-			removeErr := os.Remove(filepath)
+			removeErr := os.Remove(filePath)
 			if removeErr != nil && !os.IsNotExist(removeErr) {
-				return nil, fmt.Errorf("error delete file after error: %v, %v", fError, removeErr)
+				return nil, fmt.Errorf("error: %v, error deleting file: %v", fError, removeErr)
 			}
-		//TODO: Файлы в бд не удаляются?
-		default:
-		}
 		return nil, fError
 	}
 
-	document.FilePath = <-filePathCh
+	document.FilePath = filePath
 
 	return document, nil
 }

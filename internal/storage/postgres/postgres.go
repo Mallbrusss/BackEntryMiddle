@@ -7,7 +7,7 @@ import (
 
 	"github.com/Mallbrusss/BackEntryMiddle/models"
 
-	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloaders"
+	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloader"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -38,8 +38,7 @@ func InitDB() *gorm.DB {
 	}
 
 	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Document{})
-	db.AutoMigrate(&models.DocumentAccess{})
+	db.AutoMigrate(&models.Document{}, &models.DocumentAccess{})
 
 	return db
 }

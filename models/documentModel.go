@@ -8,7 +8,7 @@ import (
 
 type Document struct {
 	gorm.Model
-	ID        string    `json:"id" gorm:"size:255;not null"`
+	ID        string    `json:"id" gorm:"primaryKey;size:255"`
 	Name      string    `json:"name" gorm:"size:255;not null"`
 	Mime      string    `json:"mime" gorm:"size:100;not null"`
 	FilePath  string    `json:"-" gorm:"size:500;not null"`
@@ -17,14 +17,14 @@ type Document struct {
 	Token     string    `json:"token" gorm:"-"`
 	CreatedAt time.Time `json:"created"`
 	UpdatedAt time.Time
+	Grant     []DocumentAccess `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE"`
 }
 
 // TODO: мб сделать композитный ключ
 type DocumentAccess struct {
 	gorm.Model
-	PkID uint `gorm:"primaryKey"`
-	ID string `gorm:"not null;index"`
-	Login      string `gorm:"size:255;not null;index"`
+	ID    string `gorm:"size:255;not null;index"`
+	Login string `gorm:"size:255;not null;index"`
 }
 
 type Meta struct {
