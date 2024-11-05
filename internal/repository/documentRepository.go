@@ -49,7 +49,7 @@ func (dr *DocumentRepository) CreateDocument(document *models.Document, grant []
 func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, limit int) ([]models.Document, error) {
 	var documents []models.Document
 	query := dr.db.Model(&models.Document{}).
-		Joins("LEFT JOIN document_access ON document.id = document_access.document_id").
+		Joins("LEFT JOIN document_access ON document.id = document_accesses.document_id").
 		Where("documents.public = TRUE OR document_access.login = ?", login)
 
 	for k, v := range filter {
@@ -59,7 +59,8 @@ func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, 
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
-	err := query.Find(&documents).Error
+
+	err := query.Order("name ASC, created ASC").Find(&documents).Error
 	return documents, err
 }
 
@@ -68,7 +69,7 @@ func (dr *DocumentRepository) GetDocumentByID(documentID, login string) (*models
 
 	err := dr.db.Model(&models.Document{}).
 		Joins("LEFT JOIN document_access ON document.id = document_access.document_id").
-		Where("documents.id = ? AND (documents.public = TRUE OR document_access.login = ?)", documentID).
+		Where("documents.id = ? AND (documents.public = TRUE OR document_access.login = ?)", documentID, login).
 		First(&document).Error
 	if err != nil {
 		return nil, err
@@ -89,3 +90,28 @@ func (dr *DocumentRepository) CreateAccess(access *models.DocumentAccess) error 
 	return dr.db.Create(access).Error
 }
 
+func (dr *DocumentRepository) FindByToken(token string) (*models.User, error) {
+	var user models.User
+	err := dr.db.
+		Where("token = ?", token).
+		First(&user).Error
+	if err != nil {
+		return nil, err // Вернем ошибку, если токен не найден
+	}
+
+	return &user, nil
+}
+
+func (dr *DocumentRepository) FindByLogin(login string) (*models.User, error) {
+	var user models.User
+
+	err := dr.db.
+		Where("login = ?", login).
+		First(&user).Error
+
+	if err != nil {
+		return nil, err // Вернем ошибку, если пользователь не найден
+	}
+
+	return &user, nil
+}

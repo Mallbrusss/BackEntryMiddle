@@ -74,3 +74,21 @@ func (uh UserHandler) Authenticate(c echo.Context) error {
 		"response": user.Token,
 	})
 }
+
+
+func (uh *UserHandler) Logout(c echo.Context) error{
+
+	token := c.Request().Header.Get("Authorization")
+	if token == "" {
+        return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid token"})
+    }
+
+	err := uh.UserService.DeleteToken(token)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Ошибка завершения сессии"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"responce": "Session logout",
+	})
+}

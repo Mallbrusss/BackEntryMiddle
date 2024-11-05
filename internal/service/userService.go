@@ -64,6 +64,6 @@ func (us *UserService) Authenticate(login, password string) (*models.User, error
 	return user, nil
 }
 
-func (us *UserService) DeleteToken() {
-
+func (us *UserService) DeleteToken(token string) error {
+	return us.userRepository.DeleteToken(token)
 }

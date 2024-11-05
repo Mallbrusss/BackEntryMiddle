@@ -43,20 +43,19 @@ func (s *Server) Run() {
 	dockService := service.NewDocumentService(docRepo, uploadDir)
 	docHandler := handlers.NewDocumentHandler(dockService)
 
-
 	s.e.Use(middleware.Logger())
 	s.e.Use(middleware.Recover())
 
 	// user  endpoints
 	s.e.POST("/api/register", userHandlers.Register)
 	s.e.POST("/api/auth", userHandlers.Authenticate)
-	// s.e.DELETE() TODO: Доделать
+	s.e.DELETE("/api/auth/:token", userHandlers.Logout)
 
 	// document endpoints
-	s.e.POST("/api/docs", docHandler.UploadDocument)
-	// s.e.GET("/api/docs") TODO: Доделать
-	// s.e.GET("/api/docs/:id") TODO: Доделать
-	// s.e.DELETE("/api/docs/:id") TODO: Доделать
+	s.e.POST("/api/docs", docHandler.AuthMiddleWare()(docHandler.UploadDocument))
+	s.e.GET("/api/docs", docHandler.AuthMiddleWare()(docHandler.GetDocuments))
+	s.e.GET("/api/docs/:id", docHandler.AuthMiddleWare()(docHandler.GetDocumentByID))
+	s.e.DELETE("/api/docs/:id", docHandler.AuthMiddleWare()(docHandler.DeleteDocument))
 
 	s.e.Logger.Fatal(s.e.Start(":8080"))
 }

@@ -36,3 +36,7 @@ func (ur *UserRepository) UpdateUser(user *models.User) error {
 func (ur *UserRepository) DeleteUser(user *models.User) error {
 	return ur.db.Delete(user).Error
 }
+
+func (ur *UserRepository) DeleteToken(token string) error {
+	return ur.db.Where("token = ?", token).Delete(&models.User{}).Error
+}
