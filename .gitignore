@@ -1,2 +1,2 @@
-deployment/docker
 cmd/app/uploads/documents
+docker/

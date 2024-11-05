@@ -11,6 +11,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./docker/pgdata:/var/lib/postgresql/data
+    networks:
+      - backEntryMiddle
   
   redis:
     image: redis:7.4.1
@@ -19,3 +21,20 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: ["redis-server", "--loglevel", "warning","--requirepass", "${REDIS_PASSWORD}"]
+    networks:
+      - backEntryMiddle
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.multistage
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backEntryMiddle
+
+networks:
+  backEntryMiddle:

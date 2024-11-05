@@ -7,24 +7,18 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloader"
 	"github.com/redis/go-redis/v9"
 )
 
 var ctx = context.Background()
 
-const envPathToStorageEnv string = "../../deployment/.env"
-
 func InitRedisCl() *redis.Client {
-	envloader.LoadEnv(envPathToStorageEnv)
-	log.Println("Loaded Redis storage.env file")
-
-	rhost := os.Getenv("REDIS_HOST")
-	rport := os.Getenv("REDIS_PORT")
+	rhost := os.Getenv("APP_REDIS_HOST")
+	rport := os.Getenv("APP_REDIS_PORT")
 	// ruser := os.Getenv("REDIS_USER")
-	rpassword := os.Getenv("REDIS_PASSWORD")
+	rpassword := os.Getenv("APP_REDIS_PASSWORD")
 
-	rDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	rDB, err := strconv.Atoi(os.Getenv("APP_REDIS_DB"))
 	if err != nil {
 		rDB = 0
 	}

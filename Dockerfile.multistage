@@ -1,0 +1,34 @@
+FROM golang:1.23.2-alpine3.20 AS build-stage
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app-mid .
+
+FROM alpine:3.20 AS build-release-stage
+
+WORKDIR /
+
+RUN apk add --no-cache gcompat
+
+COPY --from=build-stage /app/app-mid .
+COPY --from=build-stage /app/.env .
+
+ENV POSTGRES_DB=${POSTGRES_DB}
+ENV POSTGRES_USER=${POSTGRES_USER}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+ENV REDIS_PASSWORD=${REDIS_PASSWORD}
+
+# COPY set_env.sh .
+# RUN chmod +x set_env.sh
+
+RUN chmod +x /app-mid
+
+EXPOSE 8080
+
+# ENTRYPOINT ["./set_env.sh"]

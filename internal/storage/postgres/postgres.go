@@ -7,23 +7,18 @@ import (
 
 	"github.com/Mallbrusss/BackEntryMiddle/models"
 
-	"github.com/Mallbrusss/BackEntryMiddle/pkg/envloader"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-
-const envPathToStorageEnv string = "../../deployment/.env"
+// const envPathToStorageEnv string = "./../../.env"
 
 func InitDB() *gorm.DB {
-	envloader.LoadEnv(envPathToStorageEnv)
-	log.Println("Loaded PSQL storage.env file")
-
-	host := os.Getenv("POSTGRES_HOST")
-	port := os.Getenv("POSTGRES_PORT")
-	user := os.Getenv("POSTGRES_USER")
-	password := os.Getenv("POSTGRES_PASSWORD")
-	dBname := os.Getenv("POSTGRES_DB")
+	host := os.Getenv("APP_POSTGRES_HOST")
+	port := os.Getenv("APP_POSTGRES_PORT")
+	user := os.Getenv("APP_POSTGRES_USER")
+	password := os.Getenv("APP_POSTGRES_PASSWORD")
+	dBname := os.Getenv("APP_POSTGRES_DB")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dBname, port)
 
@@ -36,5 +31,6 @@ func InitDB() *gorm.DB {
 	db.AutoMigrate(&models.Document{})
 	db.AutoMigrate(&models.DocumentAccess{})
 
+	log.Println("Success connect to Postgres")
 	return db
 }
