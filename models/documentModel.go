@@ -14,7 +14,19 @@ type Document struct {
 	Public    bool   `json:"public" gorm:"not null"`
 	Token     string `json:"-" gorm:"-"`
 	CreatedAt time.Time
-	Grant     []string   `json:"grant" gorm:"-"`
+	Grant     []string `json:"grant" gorm:"-"`
+}
+
+type CacheDocument struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Mime      string    `json:"mime"`
+	FilePath  string    `json:"file_path"`
+	File      bool      `json:"file"`
+	Public    bool      `json:"public"`
+	Token     string    `json:"token"`
+	CreatedAt time.Time `json:"created_at"`
+	Grant     []string  `json:"grant"`
 }
 
 type DocumentAccess struct {

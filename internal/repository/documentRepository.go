@@ -90,14 +90,18 @@ func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, 
 
 func (dr *DocumentRepository) GetDocumentByID(documentID, login string) (*models.Document, error) {
 	var document models.Document
-
+	fmt.Println("--->", document.ID, "--->", documentID)
+	fmt.Println("Запись не найдена.")
+	fmt.Println("FilePath:::",document.FilePath)
 	err := dr.db.Model(&models.Document{}).
 		Joins("LEFT JOIN document_accesses ON documents.id = document_accesses.doc_id").
 		Where("documents.id = ? AND (documents.public = TRUE OR document_accesses.login = ?)", documentID, login).
 		First(&document).Error
 	if err != nil {
+		fmt.Println("Запись не найдена.")
 		return nil, err
 	}
+	fmt.Println("--->", document.ID, "--->", documentID)
 
 	return &document, nil
 }

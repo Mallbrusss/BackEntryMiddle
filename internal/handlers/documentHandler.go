@@ -113,13 +113,18 @@ func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 
 	document, err := dh.DocumentService.GetDocumentByID(documentID, user.Login)
 	if err != nil {
+
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+	}	
 
+	fmt.Println(document.File)
 	if document.File {
+		fmt.Println("-->",document.FilePath)
 		return c.File(document.FilePath)
+		
 	}
 
+	fmt.Println("zdes")
 	return c.JSON(http.StatusOK, map[string]any{"data": document})
 }
 
@@ -180,27 +185,21 @@ func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 // 	id := c.Param("id")
 // 	cacheKey := fmt.Sprintf("document:%s", id)
 
-// 	// Попытка получить данные из кэша, чтобы узнать размер и другие заголовки
 // 	cachedData, err := h.RedisClient.Get(ctx, cacheKey).Result()
 // 	if err != nil && err != redis.Nil {
 // 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Ошибка при получении данных из кэша"})
 // 	}
 
 // 	if cachedData == "" {
-// 		// Данных нет в кэше, извлекаем документ из базы данных для проверки его существования
 // 		document, err := h.DocumentService.GetDocumentByID(id)
 // 		if err != nil {
 // 			return c.JSON(http.StatusNotFound, echo.Map{"error": "Документ не найден"})
 // 		}
-// 		// Устанавливаем заголовки на основе данных из базы
 // 		c.Response().Header().Set(echo.HeaderContentType, document.Mime)
 // 		c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", len(document.FilePath))) // например, или другой метаданные
 // 	} else {
-// 		// Если данные есть в кэше, возвращаем только заголовки из кэша
 // 		c.Response().Header().Set(echo.HeaderContentType, "application/json") // тип JSON данных
 // 		c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", len(cachedData)))
 // 	}
-
-// 	// HEAD-запрос не возвращает тела
 // 	return c.NoContent(http.StatusOK)
 // }

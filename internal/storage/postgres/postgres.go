@@ -12,17 +12,12 @@ import (
 	"gorm.io/gorm"
 )
 
-//TODO: Инициализировать таблицы
-
-// путь до env файла указывается относительно исполняемого файла
-// если вызываем из tinkoff_test, то указываем относительный путь tinkoff_test
-// TODO: перенести вызыв env в корень проекта
 
 const envPathToStorageEnv string = "../../deployment/.env"
 
 func InitDB() *gorm.DB {
 	envloader.LoadEnv(envPathToStorageEnv)
-	log.Println("Loaded storage.env file")
+	log.Println("Loaded PSQL storage.env file")
 
 	host := os.Getenv("POSTGRES_HOST")
 	port := os.Getenv("POSTGRES_PORT")
