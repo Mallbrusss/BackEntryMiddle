@@ -78,7 +78,7 @@ func (uh UserHandler) Authenticate(c echo.Context) error {
 
 func (uh *UserHandler) Logout(c echo.Context) error{
 
-	token := c.Request().Header.Get("Authorization")
+	token := c.Param("token")
 	if token == "" {
         return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid token"})
     }

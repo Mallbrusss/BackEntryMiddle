@@ -45,6 +45,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	ext := ds.getFileExtensions(document.Mime)
 	fileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
 	filePath := filepath.Join(ds.uploadDir, fileName)
+	// document.FilePath = filePath
 
 	go func() {
 		defer wg.Done()
@@ -57,6 +58,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 	go func() {
 		defer wg.Done()
 		document.ID = uuid.New().String()
+		document.FilePath = filePath
 		err := ds.docRepo.CreateDocument(document, grant)
 		if err != nil {
 			errorCh <- fmt.Errorf("error save to database: %w", err)
@@ -81,13 +83,11 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 		return nil, fError
 	}
 
-	document.FilePath = filePath
-
 	return document, nil
 }
 
-func (ds *DocumentService) DeleteDocument(documentID string) error {
-	document, err := ds.docRepo.GetDocumentByID(documentID, "")
+func (ds *DocumentService) DeleteDocument(documentID, login string) error {
+	document, err := ds.docRepo.GetDocumentByID(documentID,login)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (ds *DocumentService) GetUserByToken(token string) (*models.User, error) {
 
 	user, err := ds.docRepo.FindByLogin(session.Login)
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 	return user, nil
 }

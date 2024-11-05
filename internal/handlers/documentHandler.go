@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
@@ -38,6 +39,8 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Failed to parse meta data."})
 	}
 
+	fmt.Print("-----------------\n", metaData, "--------------\n")
+
 	jsonData := c.FormValue("json")
 
 	file, err := c.FormFile("file")
@@ -60,13 +63,13 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 	if mimeType == "application/octet-stream" {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Unable to detect MIME type."})
 	}
-	//TODO: Првоерка входящих миме из метаданных и миме из файла
 
 	// Создаем документ
 	document := &models.Document{
 		Name:     meta.Name,
 		Mime:     mimeType,
 		Public:   meta.Public,
+		File:     meta.File,
 		FilePath: "",
 	}
 
@@ -85,14 +88,14 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 }
 
 func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
-	login, ok := c.Get("login").(string)
-	if !ok || login == "" {
+	user, ok := c.Get("user").(*models.User)
+	if user.Login == "" || !ok {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
 	}
 
 	docId := c.Param("id")
 
-	err := dh.DocumentService.DeleteDocument(docId)
+	err := dh.DocumentService.DeleteDocument(docId, user.Login)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Ошибка при удалении документа"})
 	}
@@ -101,14 +104,14 @@ func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
 }
 
 func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
-	login, ok := c.Get("login").(string)
-	if !ok {
+	user, ok := c.Get("user").(*models.User)
+	if user.Login == "" || !ok {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
 	}
 
 	documentID := c.Param("id")
 
-	document, err := dh.DocumentService.GetDocumentByID(documentID, login)
+	document, err := dh.DocumentService.GetDocumentByID(documentID, user.Login)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -122,12 +125,19 @@ func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 
 // Получение списка документов
 func (dh *DocumentHandler) GetDocuments(c echo.Context) error {
-	MWlogin, ok := c.Get("login").(string)
-	if MWlogin != "" && !ok {
+	user, ok := c.Get("user").(*models.User)
+	if user.Login == "" || !ok {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
 	}
+
 	login := c.QueryParam("login")
-	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+	if login == "" {
+		login = user.Login
+	}
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		limit = 0
+	}
 	key := c.QueryParam("key")
 	value := c.QueryParam("value")
 
@@ -140,7 +150,6 @@ func (dh *DocumentHandler) GetDocuments(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return c.JSON(http.StatusOK, map[string]any{"data": map[string]any{"docs": documents}})
 }
 
@@ -149,7 +158,7 @@ func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			token := c.Request().Header.Get("Authorization")
 
-			login, err := dh.DocumentService.GetUserByToken(token)
+			user, err := dh.DocumentService.GetUserByToken(token)
 			if err != nil {
 				errResp := models.ErrorResponce{
 					Code: http.StatusUnauthorized,
@@ -160,8 +169,38 @@ func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 				})
 			}
 
-			c.Set("login", login)
+			c.Set("user", user)
 			return next(c)
 		}
 	}
 }
+
+// func (dh *DocumentHandler) HeadDocument(c echo.Context) error {
+// 	ctx := context.Background()
+// 	id := c.Param("id")
+// 	cacheKey := fmt.Sprintf("document:%s", id)
+
+// 	// Попытка получить данные из кэша, чтобы узнать размер и другие заголовки
+// 	cachedData, err := h.RedisClient.Get(ctx, cacheKey).Result()
+// 	if err != nil && err != redis.Nil {
+// 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Ошибка при получении данных из кэша"})
+// 	}
+
+// 	if cachedData == "" {
+// 		// Данных нет в кэше, извлекаем документ из базы данных для проверки его существования
+// 		document, err := h.DocumentService.GetDocumentByID(id)
+// 		if err != nil {
+// 			return c.JSON(http.StatusNotFound, echo.Map{"error": "Документ не найден"})
+// 		}
+// 		// Устанавливаем заголовки на основе данных из базы
+// 		c.Response().Header().Set(echo.HeaderContentType, document.Mime)
+// 		c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", len(document.FilePath))) // например, или другой метаданные
+// 	} else {
+// 		// Если данные есть в кэше, возвращаем только заголовки из кэша
+// 		c.Response().Header().Set(echo.HeaderContentType, "application/json") // тип JSON данных
+// 		c.Response().Header().Set(echo.HeaderContentLength, fmt.Sprintf("%d", len(cachedData)))
+// 	}
+
+// 	// HEAD-запрос не возвращает тела
+// 	return c.NoContent(http.StatusOK)
+// }

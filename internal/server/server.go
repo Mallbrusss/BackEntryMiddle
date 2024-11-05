@@ -29,7 +29,7 @@ func (s *Server) Run() {
 	db := inPg.InitDB()
 
 	//TODO: мб подредачить, но пока так
-	uploadDir := "./../../uploads/documents"
+	uploadDir := "uploads/documents"
 	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 		log.Fatalf("Ошибка при создании директории для загрузок: %v", err)
 	}
@@ -50,11 +50,14 @@ func (s *Server) Run() {
 	s.e.POST("/api/register", userHandlers.Register)
 	s.e.POST("/api/auth", userHandlers.Authenticate)
 	s.e.DELETE("/api/auth/:token", userHandlers.Logout)
+	
 
 	// document endpoints
 	s.e.POST("/api/docs", docHandler.AuthMiddleWare()(docHandler.UploadDocument))
 	s.e.GET("/api/docs", docHandler.AuthMiddleWare()(docHandler.GetDocuments))
+	// s.e.HEAD("/api/docs", )// TODO: Доделать
 	s.e.GET("/api/docs/:id", docHandler.AuthMiddleWare()(docHandler.GetDocumentByID))
+	// s.e.HEAD("/api/docs/:id", ) // TODO: Доделать
 	s.e.DELETE("/api/docs/:id", docHandler.AuthMiddleWare()(docHandler.DeleteDocument))
 
 	s.e.Logger.Fatal(s.e.Start(":8080"))
