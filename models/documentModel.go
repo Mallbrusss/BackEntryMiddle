@@ -6,7 +6,7 @@ import (
 
 type Document struct {
 	// gorm.Model
-	ID        string `gorm:"primaryKey;size:255"`
+	ID        string `gorm:"primaryKey;size:255;index"`
 	Name      string `json:"name" gorm:"size:255;not null"`
 	Mime      string `json:"mime" gorm:"size:100;not null"`
 	FilePath  string `json:"-" gorm:"size:500;not null"`

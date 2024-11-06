@@ -88,20 +88,30 @@ func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, 
 	return documents, err
 }
 
+func (dr *DocumentRepository) GetDocumentAccessByID(documentID string) ([]models.DocumentAccess, error) {
+	var grants []models.DocumentAccess
+
+	err := dr.db.Model(&models.DocumentAccess{}).
+		Where("doc_id = ?", documentID).
+		Find(&documentID).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("error fetching document accesses: %w", err)
+	}
+
+	return grants, nil
+}
+
 func (dr *DocumentRepository) GetDocumentByID(documentID, login string) (*models.Document, error) {
 	var document models.Document
-	fmt.Println("--->", document.ID, "--->", documentID)
-	fmt.Println("Запись не найдена.")
-	fmt.Println("FilePath:::",document.FilePath)
 	err := dr.db.Model(&models.Document{}).
 		Joins("LEFT JOIN document_accesses ON documents.id = document_accesses.doc_id").
-		Where("documents.id = ? AND (documents.public = TRUE OR document_accesses.login = ?)", documentID, login).
+		Joins("LEFT JOIN user ON document_accesses.login = user.login").
+		Where("documents.id = ? AND (user.is_admin = TRUE OR documents.public = TRUE OR document_accesses.login = ?)", documentID, login).
 		First(&document).Error
 	if err != nil {
-		fmt.Println("Запись не найдена.")
 		return nil, err
 	}
-	fmt.Println("--->", document.ID, "--->", documentID)
 
 	return &document, nil
 }
@@ -124,7 +134,7 @@ func (dr *DocumentRepository) FindByToken(token string) (*models.User, error) {
 		Where("token = ?", token).
 		First(&user).Error
 	if err != nil {
-		return nil, err // Вернем ошибку, если токен не найден
+		return nil, err
 	}
 
 	return &user, nil
@@ -138,8 +148,29 @@ func (dr *DocumentRepository) FindByLogin(login string) (*models.User, error) {
 		First(&user).Error
 
 	if err != nil {
-		return nil, err // Вернем ошибку, если пользователь не найден
+		return nil, err
 	}
 
 	return &user, nil
+}
+
+func (dr *DocumentRepository) IsPermission(documentId string, user *models.User) (bool, error) {
+	if user.IsAdmin {
+		return true, nil
+	}
+
+	var count int64
+	err := dr.db.Model(&models.DocumentAccess{}).
+		Where("doc_id = ? AND login = ?", documentId, user.Login).
+		Count(&count)
+
+	if err.Error != nil {
+		return false, err.Error
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }

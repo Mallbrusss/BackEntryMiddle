@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
 	"net/http"
+	"os"
+
+	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
 
 	"github.com/labstack/echo/v4"
 
@@ -19,7 +21,8 @@ func NewUserHandlers(userService *service.UserService) *UserHandler {
 
 func (uh UserHandler) Register(c echo.Context) error {
 	var req models.User
-
+	isAdmin := false
+	adminToken := os.Getenv("ADMIN_TOKEN")
 	if err := c.Bind(&req); err != nil {
 
 		errResp := models.ErrorResponce{
@@ -30,8 +33,12 @@ func (uh UserHandler) Register(c echo.Context) error {
 			"error": errResp,
 		})
 	}
+	
+	if req.Token == adminToken{
+		isAdmin = true
+	}
 
-	user, err := uh.UserService.Register(req.Login, req.Password, req.Token)
+	user, err := uh.UserService.Register(req.Login, req.Password, isAdmin)
 	if err != nil {
 		errResp := models.ErrorResponce{
 			Code: 123,

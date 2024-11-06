@@ -27,9 +27,20 @@ func InitDB() *gorm.DB {
 		log.Fatalf("Cannot connect to db: %v", err)
 	}
 
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Document{})
-	db.AutoMigrate(&models.DocumentAccess{})
+	err = db.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Println("error migrate user table")
+	}
+
+	err = db.AutoMigrate(&models.Document{})
+	if err != nil {
+		log.Println("error migrate Document table")
+	}
+
+	err = db.AutoMigrate(&models.DocumentAccess{})
+	if err != nil {
+		log.Println("error migrate DocumentAccess table")
+	}
 
 	log.Println("Success connect to Postgres")
 	return db

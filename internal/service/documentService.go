@@ -103,10 +103,33 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 func (ds *DocumentService) DeleteDocument(documentID, login string) error {
 	document, err := ds.docRepo.GetDocumentByID(documentID, login)
 	if err != nil {
-		fmt.Println("Запись не найдена.")
+		log.Println("File not found")
 		return err
 	}
 
+	user, err := ds.docRepo.FindByLogin(login)
+	if err != nil {
+		log.Println("User not found")
+		return err
+	}
+
+	if user.IsAdmin {
+		return ds.DeleteDocumentFromSystem(document)
+	}
+
+	hasPermission, err := ds.docRepo.IsPermission(documentID, user)
+	if err != nil {
+		log.Printf("Error checking user permissions: %v", err)
+		return err
+	}
+	if !hasPermission {
+		return fmt.Errorf("user does not have permission to delete this document")
+	}
+
+	return ds.DeleteDocumentFromSystem(document)
+}
+
+func (ds *DocumentService) DeleteDocumentFromSystem(document *models.Document) error {
 	var wg sync.WaitGroup
 	errorCh := make(chan error, 2)
 
@@ -125,7 +148,7 @@ func (ds *DocumentService) DeleteDocument(documentID, login string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = ds.docRepo.DeleteDocument(document)
+		err := ds.docRepo.DeleteDocument(document)
 		if err != nil {
 			errorCh <- fmt.Errorf("error deleting document from database: %w", err)
 			return
@@ -137,7 +160,7 @@ func (ds *DocumentService) DeleteDocument(documentID, login string) error {
 	go func() {
 		defer wg.Done()
 		ctx := context.Background()
-		err = ds.rdb.Del(ctx, document.ID).Err()
+		err := ds.rdb.Del(ctx, document.ID).Err()
 		if err != nil {
 			errorCh <- fmt.Errorf("error deleting document from Redis cache: %w", err)
 			return
@@ -167,6 +190,16 @@ func (ds *DocumentService) GetDocumentByID(documentID, login string) (*models.Do
 			return nil, err
 		}
 
+		grants, err := ds.docRepo.GetDocumentAccessByID(documentID)
+		if err != nil {
+			log.Printf("error getting document accesses: %v", err)
+			return nil, err
+		}
+
+		for _, grant := range grants {
+			document.Grant = append(document.Grant, grant.Login)
+		}
+
 		cacheDocument := models.CacheDocument{
 			ID:        document.ID,
 			Name:      document.Name,
@@ -181,18 +214,17 @@ func (ds *DocumentService) GetDocumentByID(documentID, login string) (*models.Do
 
 		jsonData, err := json.Marshal(cacheDocument)
 		if err != nil {
-			fmt.Println("FilePath:::", document.FilePath)
 			log.Println("error marshaling document to JSON: %w", err)
 			return nil, err
 		}
 
 		err = ds.rdb.Set(ctx, documentID, jsonData, 10*time.Second).Err()
 		if err != nil {
-			fmt.Println("FilePath:::", document.FilePath)
+
 			log.Println("error saving document to Redis: %w")
 			return nil, err
 		}
-		fmt.Println("FilePath:::---", document.FilePath)
+
 		return document, nil
 	} else if err != nil {
 		log.Println("error saving document to Redis: %w", err)
