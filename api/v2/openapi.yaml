@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-  title: Document Management API
+  title: Document Management API V2
   description: API для управления документами и пользователями
-  version: "1.0.0"
+  version: "2.0.0"
 paths:
   /api/register:
     post:
@@ -24,7 +24,6 @@ paths:
                   type: string
                   description: Пароль нового пользователя
               required:
-                - token
                 - login
                 - pswd
       responses:
@@ -41,6 +40,19 @@ paths:
                       login:
                         type: string
                         description: Логин зарегистрированного пользователя
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Некорректный формат данных"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
+
   /api/auth:
     post:
       summary: Аутентификация пользователя
@@ -73,7 +85,29 @@ paths:
                     properties:
                       token:
                         type: string
-                        description: JWT-токен для доступа
+                        description: Токен сессиии
+              example:
+                response:
+                  token: userToken
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Неверный формат данных"
+        '401':
+          description: Неверные логин или пароль
+          content:
+            application/json:
+              example:
+                message: "Неверный логин или пароль"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
+
   /api/docs:
     post:
       summary: Загрузка нового документа
@@ -93,16 +127,22 @@ paths:
                       type: boolean
                     public:
                       type: boolean
-                    token:
-                      type: string
                     mime:
                       type: string
                     grant:
                       type: array
                       items:
-                        type: string
+                        type: string             
               required:
                 - meta
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: Токен пользователя для авторизации
+          schema:
+            type: string
+            example: userToken
       responses:
         '200':
           description: Документ успешно загружен
@@ -118,14 +158,34 @@ paths:
                         type: object
                       file:
                         type: string
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Некорректный запрос"
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              example:
+                message: "Необходим токен"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
     get:
       summary: Получение списка документов
       parameters:
-        - in: query
-          name: token
+        - in: header
+          name: Authorization
+          required: true
+          description: Токен пользователя для авторизации
           schema:
             type: string
-          required: true
+            example: userToken
         - in: query
           name: login
           schema:
@@ -135,14 +195,17 @@ paths:
           name: key
           schema:
             type: string
+          description: Имя колонки для фильтрации
         - in: query
           name: value
           schema:
             type: string
+          description: Значение фильтра
         - in: query
           name: limit
           schema:
             type: integer
+          description: Количество документов в списке
       responses:
         '200':
           description: Список документов
@@ -175,6 +238,37 @@ paths:
                               type: array
                               items:
                                 type: string
+              example:
+                data:
+                  docs:
+                    - id: "1"
+                      name: "photo.jpg"
+                      mime: "image/jpg"
+                      file: true
+                      public: true
+                      created: "2024-11-01T12:00:00Z"
+                      grant: ["login1", "login2"]
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Некорректный запрос"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
+    head:
+      summary: Получение мета-данных документа
+      responses:
+        '200':
+          description: Мета-данные успешно получены
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Ошибка сервера
   /api/docs/{id}:
     get:
       summary: Получение одного документа
@@ -184,11 +278,13 @@ paths:
           required: true
           schema:
             type: string
-        - in: query
-          name: token
+        - in: header
+          name: Authorization
           required: true
+          description: Токен пользователя для авторизации
           schema:
             type: string
+            example: userToken
       responses:
         '200':
           description: Документ найден
@@ -204,16 +300,36 @@ paths:
                         type: string
                       mime:
                         type: string
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Неверный запрос"
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              example:
+                message: "Необходим токен"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
     delete:
       summary: Удаление документа
       parameters:
-        - in: path
-          name: id
+        - in: header
+          name: Authorization
           required: true
+          description: Токен пользователя для авторизации
           schema:
             type: string
-        - in: query
-          name: token
+            example: userToken
+        - in: path
+          name: id
           required: true
           schema:
             type: string
@@ -231,6 +347,38 @@ paths:
                       id:
                         type: string
                         description: ID удаленного документа
+              example:
+                response:
+                  id: "1"
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Некорректный запрос"
+        '404':
+          description: Документ не найден
+          content:
+            application/json:
+              example:
+                message: "Документ не найден"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
+    head:
+      summary: Получение мета-данных документа
+      responses:
+        '200':
+          description: Мета-данные документа успешно получены
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Документ не найден
+        '500':
+          description: Ошибка сервера
   /api/auth/{token}:
     delete:
       summary: Завершение сессии работы
@@ -253,3 +401,18 @@ paths:
                     properties:
                       success:
                         type: boolean
+              example:
+                response:
+                  success: true
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              example:
+                message: "Некорректный запрос"
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                message: "Ошибка сервера"
