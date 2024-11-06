@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Mallbrusss/BackEntryMiddle/internal/handlers"
+	"github.com/Mallbrusss/BackEntryMiddle/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
@@ -69,7 +70,7 @@ func (s *Server) registerRoutes() {
 	docRepo := repository.NewDocumentRepository(s.db)
 
 	// service initialization
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, utils.IsValidLogin, utils.IsValidPassword)
 	docService := service.NewDocumentService(docRepo, s.rdb, s.uploadDir)
 
 	// handlers initialization
