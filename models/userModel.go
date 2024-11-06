@@ -4,6 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// User - модель пользователя
 type User struct {
 	gorm.Model
 	Token    string `json:"token" gorm:"uniqueIndex;size:255"`

@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Document - модель документа 
 type Document struct {
 	// gorm.Model
 	ID        string `gorm:"primaryKey;size:255;index"`
@@ -17,6 +18,7 @@ type Document struct {
 	Grant     []string `json:"grant" gorm:"-"`
 }
 
+// CacheDocument - модель документа для кеширования
 type CacheDocument struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
@@ -29,11 +31,13 @@ type CacheDocument struct {
 	Grant     []string  `json:"grant"`
 }
 
+// DocumentAccess - модель юзеров имеющих доступ
 type DocumentAccess struct {
 	DocID string `json:"-" gorm:"size:255;not null;index"`
 	Login string `json:"login" gorm:"size:255;not null;index"`
 }
 
+// Meta - модель мета данных
 type Meta struct {
 	Name   string   `json:"name"`
 	File   bool     `json:"file"`

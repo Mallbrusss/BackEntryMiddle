@@ -4,11 +4,13 @@ import (
 	"regexp"
 )
 
+// IsValidPassword проверяет логин на валидность
 func IsValidLogin(login string) bool {
 	loginRegex := regexp.MustCompile("^[a-zA-Zа-яА-Я0-9]{8,}$")
 	return loginRegex.MatchString(login)
 }
 
+// IsValidPassword проверяет пароль на валидность
 func IsValidPassword(password string) bool {
 
 	switch {

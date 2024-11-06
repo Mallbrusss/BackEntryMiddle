@@ -15,6 +15,7 @@ import (
 const maxRetries = 10
 const retryInterval = 5 * time.Second
 
+// InitRedisCl - инициализирует клиент постгресса
 func InitDB() (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
