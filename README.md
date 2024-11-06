@@ -269,3 +269,12 @@ go
     ```bash
     docker-compose up
     ```
+
+## TODO
+
+- [] Unit tests
+- [] Load ests
+- [] Observability
+- [] ci/cd
+- [] Кеширование токенов
+- [] Работа с кешом через middleware
