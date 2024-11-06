@@ -12,14 +12,14 @@ import (
 )
 
 type UserHandler struct {
-	UserService *service.UserService
-	errRes      *models.ErrorResponce
+	UserService service.UserServiceInterface
+	errRes      *models.ErrorResponse
 }
 
 func NewUserHandlers(userService *service.UserService) *UserHandler {
 	return &UserHandler{
 		UserService: userService,
-		errRes:      models.NewErrorResponce()}
+		errRes:      models.NewErrorResponse()}
 }
 
 func (uh UserHandler) Register(c echo.Context) error {
@@ -46,7 +46,7 @@ func (uh UserHandler) Register(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"responce": map[string]string{
+		"response": map[string]string{
 			"login": user.Login,
 		}})
 }
@@ -68,7 +68,7 @@ func (uh UserHandler) Authenticate(c echo.Context) error {
 	c.Response().Header().Set("Authorization", user.Token)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"responce": map[string]string{
+		"response": map[string]string{
 			"token": user.Token,
 		}})
 }
@@ -86,7 +86,7 @@ func (uh *UserHandler) Logout(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"responce": map[string]string{
+		"response": map[string]string{
 			token: "true",
 		}})
 }

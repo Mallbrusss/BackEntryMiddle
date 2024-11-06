@@ -20,13 +20,22 @@ import (
 	"github.com/google/uuid"
 )
 
+type DocumentServiceInterface interface{
+	UploadDocument(document *models.Document, fileData []byte, grant []string) (*models.Document, error)
+	DeleteDocument(documentID, login string) error
+	DeleteDocumentFromSystem(document *models.Document) error 
+	GetDocumentByID(documentID, login string) (*models.Document, error)
+	GetDocuments(login string, filter map[string]any, limit int) ([]models.Document, error)
+	GetUserByToken(token string) (*models.User, error)
+}
+
 type DocumentService struct {
-	docRepo   *repository.DocumentRepository
+	docRepo   repository.DocumentRepositoryInterface
 	rdb       *redis.Client
 	uploadDir string
 }
 
-func NewDocumentService(dockRepo *repository.DocumentRepository, rdb *redis.Client, uploadDir string) *DocumentService {
+func NewDocumentService(dockRepo repository.DocumentRepositoryInterface, rdb *redis.Client, uploadDir string) *DocumentService {
 	return &DocumentService{
 		docRepo:   dockRepo,
 		rdb:       rdb,

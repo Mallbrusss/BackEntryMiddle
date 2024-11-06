@@ -13,14 +13,14 @@ import (
 )
 
 type DocumentHandler struct {
-	DocumentService *service.DocumentService
-	errRes          *models.ErrorResponce
+	DocumentService service.DocumentServiceInterface
+	errRes          *models.ErrorResponse
 }
 
 func NewDocumentHandler(documentService *service.DocumentService) *DocumentHandler {
 	return &DocumentHandler{
 		DocumentService: documentService,
-		errRes:          models.NewErrorResponce(),
+		errRes:          models.NewErrorResponse(),
 	}
 }
 
@@ -98,7 +98,9 @@ func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"response": docId})
+	return c.JSON(http.StatusOK, echo.Map{"response": map[string]string{
+		docId: "true",
+	}})
 }
 
 func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
@@ -170,11 +172,6 @@ func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 }
 
 func (dh *DocumentHandler) HeadDocument(c echo.Context) error {
-	// user, ok := c.Get("user").(*models.User)
-	// if user.Login == "" || !ok {
-	// 	return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
-	// }
-
 	c.Response().Header().Set(echo.HeaderContentType, "application/json")
 	c.Response().Header().Set(echo.HeaderAccept, "OK")
 

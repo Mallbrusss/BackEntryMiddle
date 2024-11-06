@@ -6,6 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserRepositoryInterface interface {
+	CreateUser(user *models.User) error
+	FindUser(login string) (*models.User, error)
+	UpdateUser(user *models.User) error
+	DeleteToken(token string) error
+}
+
 type UserRepository struct {
 	db *gorm.DB
 }
@@ -20,10 +27,10 @@ func (ur *UserRepository) CreateUser(user *models.User) error {
 	return ur.db.Create(user).Error
 }
 
-func (ur *UserRepository) FindUser(username string) (*models.User, error) {
+func (ur *UserRepository) FindUser(login string) (*models.User, error) {
 	var user models.User
 
-	if err := ur.db.Where("login = ?", username).First(&user).Error; err != nil {
+	if err := ur.db.Where("login = ?", login).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

@@ -8,30 +8,37 @@ import (
 
 	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
 	"github.com/Mallbrusss/BackEntryMiddle/models"
-	"github.com/Mallbrusss/BackEntryMiddle/pkg/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserService struct {
-	userRepository *repository.UserRepository
-	// authToken      string
+type UserServiceInterface interface{
+	Register(login, password string, isAdmin bool) (*models.User, error)
+	Authenticate(login, password string) (*models.User, error)
+	DeleteToken(token string) error
 }
 
-func NewUserService(userRepository *repository.UserRepository) *UserService {
+type UserService struct {
+	userRepository  repository.UserRepositoryInterface
+	isValidLogin    func(string) bool
+	isValidPassword func(string) bool
+}
+
+func NewUserService(userRepository repository.UserRepositoryInterface, isValidLogin func(string) bool, isValidPassword func(string) bool) *UserService {
 	return &UserService{
-		userRepository: userRepository,
+		userRepository:  userRepository,
+		isValidLogin:    isValidLogin,
+		isValidPassword: isValidPassword,
 	}
 }
 
 func (us *UserService) Register(login, password string, isAdmin bool) (*models.User, error) {
 	// TODO: Перенести в middleware
-
-	if ok := utils.IsValidLogin(login); !ok {
+	if ok := us.isValidLogin(login); !ok {
 		log.Println("Invalid login")
 		return nil, errors.New("invalid login")
 	}
-	if ok := utils.IsValidPassword(password); !ok {
+	if ok := us.isValidPassword(password); !ok {
 		log.Println("Invalid password")
 		return nil, errors.New("invalid password")
 	}

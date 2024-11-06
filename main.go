@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/Mallbrusss/BackEntryMiddle/internal/server"
@@ -24,7 +25,7 @@ func main() {
 	serv := server.NewServer()
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, os.Kill)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
 		if err := serv.Run(); err != nil {

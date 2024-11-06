@@ -9,6 +9,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type DocumentRepositoryInterface interface {
+	CreateDocument(document *models.Document, grant []string) error
+	GetDocuments(login string, filter map[string]any, limit int) ([]models.Document, error)
+	GetDocumentByID(documentID, login string) (*models.Document, error)
+	DeleteDocument(document *models.Document) error
+	GetDocumentAccessByID(documentID string) ([]models.DocumentAccess, error)
+	FindByToken(token string) (*models.User, error)
+	FindByLogin(login string) (*models.User, error)
+	IsPermission(documentId string, user *models.User) (bool, error)
+}
+
 type DocumentRepository struct {
 	db *gorm.DB
 }
