@@ -13,10 +13,13 @@ import (
 
 type UserHandler struct {
 	UserService *service.UserService
+	errRes      *models.ErrorResponce
 }
 
 func NewUserHandlers(userService *service.UserService) *UserHandler {
-	return &UserHandler{UserService: userService}
+	return &UserHandler{
+		UserService: userService,
+		errRes:      models.NewErrorResponce()}
 }
 
 func (uh UserHandler) Register(c echo.Context) error {
@@ -25,77 +28,65 @@ func (uh UserHandler) Register(c echo.Context) error {
 	adminToken := os.Getenv("ADMIN_TOKEN")
 	if err := c.Bind(&req); err != nil {
 
-		errResp := models.ErrorResponce{
-			Code: 123,
-			Text: "So sad",
-		}
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error": errResp,
+			"error": echo.Map{"error": uh.errRes.GetErrorResponse(http.StatusBadRequest)},
 		})
 	}
-	
-	if req.Token == adminToken{
+
+	if req.Token == adminToken {
 		isAdmin = true
 	}
 
 	user, err := uh.UserService.Register(req.Login, req.Password, isAdmin)
 	if err != nil {
-		errResp := models.ErrorResponce{
-			Code: 123,
-			Text: "So sad",
-		}
+
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error": errResp,
+			"error": uh.errRes.GetErrorResponse(http.StatusBadRequest),
 		})
 	}
 
-	//FIXME: поправить вывод
 	return c.JSON(http.StatusOK, echo.Map{
-		"responce": user.Login,
-	})
+		"responce": map[string]string{
+			"login": user.Login,
+		}})
 }
 
 func (uh UserHandler) Authenticate(c echo.Context) error {
 	var req models.User
 
 	if err := c.Bind(&req); err != nil {
-		errResp := models.ErrorResponce{
-			Code: 123,
-			Text: "So sad",
-		}
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": errResp})
+
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": uh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	user, err := uh.UserService.Authenticate(req.Login, req.Password)
 	if err != nil {
-		errResp := models.ErrorResponce{
-			Code: 123,
-			Text: "So sad",
-		}
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": errResp})
+
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": uh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	c.Response().Header().Set("Authorization", user.Token)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"response": user.Token,
-	})
+		"responce": map[string]string{
+			"token": user.Token,
+		}})
 }
 
-
-func (uh *UserHandler) Logout(c echo.Context) error{
+func (uh *UserHandler) Logout(c echo.Context) error {
 
 	token := c.Param("token")
 	if token == "" {
-        return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid token"})
-    }
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": uh.errRes.GetErrorResponse(http.StatusBadRequest)})
+	}
 
 	err := uh.UserService.DeleteToken(token)
-	if err != nil{
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Ошибка завершения сессии"})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": uh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"responce": "Session logout",
-	})
+		"responce": map[string]string{
+			token: "true",
+		}})
 }

@@ -96,8 +96,8 @@ func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, 
 			documents[i].Grant = logins
 		}
 	}
-	log.Println(documents)
-	fmt.Println(query.Statement.SQL.String())
+
+	log.Println(query.Statement.SQL.String())
 	return documents, nil
 }
 

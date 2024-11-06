@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 
 	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
@@ -15,55 +14,55 @@ import (
 
 type DocumentHandler struct {
 	DocumentService *service.DocumentService
+	errRes          *models.ErrorResponce
 }
 
 func NewDocumentHandler(documentService *service.DocumentService) *DocumentHandler {
 	return &DocumentHandler{
 		DocumentService: documentService,
+		errRes:          models.NewErrorResponce(),
 	}
 }
 
 func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
-	// Проверить есть ли проверка на нил токен
 	mpform, err := c.MultipartForm()
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid multipart form."})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	metaData, ok := mpform.Value["meta"]
 	if !ok || len(metaData) == 0 {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Missing meta data."})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	var meta models.Meta
 	if err := json.Unmarshal([]byte(metaData[0]), &meta); err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Failed to parse meta data."})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	jsonData := c.FormValue("json")
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Failed to get file."})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
 	src, err := file.Open()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to open file."})
+		return c.JSON(http.StatusNotImplemented, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 	defer src.Close()
 
 	fileData := make([]byte, file.Size)
 	if _, err := src.Read(fileData); err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to read file data."})
+		return c.JSON(http.StatusNotImplemented, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 
 	mimeType := http.DetectContentType(fileData)
 	if mimeType == "application/octet-stream" {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Unable to detect MIME type."})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusBadRequest)})
 	}
 
-	// Создаем документ
 	document := &models.Document{
 		Name:     meta.Name,
 		Mime:     mimeType,
@@ -74,7 +73,7 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 
 	saveDoc, err := dh.DocumentService.UploadDocument(document, fileData, meta.Grant)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to upload document."})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 
 	response := map[string]any{
@@ -89,14 +88,14 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
 	user, ok := c.Get("user").(*models.User)
 	if !ok || user.Login == "" {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusUnauthorized)})
 	}
 
 	docId := c.Param("id")
 
 	err := dh.DocumentService.DeleteDocument(docId, user.Login)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Ошибка при удалении документа"})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"response": docId})
@@ -105,7 +104,7 @@ func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
 func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 	user, ok := c.Get("user").(*models.User)
 	if !ok || user.Login == "" {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusUnauthorized)})
 	}
 
 	documentID := c.Param("id")
@@ -113,16 +112,14 @@ func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 	document, err := dh.DocumentService.GetDocumentByID(documentID, user.Login)
 	if err != nil {
 
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 
-	fmt.Println(document.File)
 	if document.File {
 		return c.File(document.FilePath)
 
 	}
 
-	fmt.Println("zdes")
 	return c.JSON(http.StatusOK, map[string]any{"data": document})
 }
 
@@ -130,7 +127,7 @@ func (dh *DocumentHandler) GetDocuments(c echo.Context) error {
 	login := c.QueryParam("login")
 	user, ok := c.Get("user").(*models.User)
 	if !ok || user.Login == "" {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "user unauthorized"})
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusUnauthorized)})
 	}
 
 	if login == "" {
@@ -150,7 +147,7 @@ func (dh *DocumentHandler) GetDocuments(c echo.Context) error {
 
 	documents, err := dh.DocumentService.GetDocuments(login, filter, limit)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
 	}
 	return c.JSON(http.StatusOK, map[string]any{"data": map[string]any{"docs": documents}})
 }
@@ -162,13 +159,8 @@ func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 
 			user, err := dh.DocumentService.GetUserByToken(token)
 			if err != nil {
-				errResp := models.ErrorResponce{
-					Code: http.StatusUnauthorized,
-					Text: "Invalid token",
-				}
-				return c.JSON(http.StatusUnauthorized, echo.Map{
-					"error": errResp,
-				})
+
+				return c.JSON(http.StatusUnauthorized, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusUnauthorized)})
 			}
 
 			c.Set("user", user)
