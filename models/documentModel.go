@@ -30,7 +30,6 @@ type CacheDocument struct {
 }
 
 type DocumentAccess struct {
-	// gorm.Model
 	DocID string `json:"-" gorm:"size:255;not null;index"`
 	Login string `json:"login" gorm:"size:255;not null;index"`
 }

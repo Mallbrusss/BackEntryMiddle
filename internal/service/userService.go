@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserServiceInterface interface{
+type UserServiceInterface interface {
 	Register(login, password string, isAdmin bool) (*models.User, error)
 	Authenticate(login, password string) (*models.User, error)
 	DeleteToken(token string) error
@@ -77,6 +77,7 @@ func (us *UserService) Authenticate(login, password string) (*models.User, error
 	}
 
 	user.Token = newToken
+	//TODO: Кешировать токены
 	err = us.userRepository.UpdateUser(user)
 	if err != nil {
 		return nil, errors.New("error update user (token)")
@@ -86,6 +87,7 @@ func (us *UserService) Authenticate(login, password string) (*models.User, error
 }
 
 func (us *UserService) DeleteToken(token string) error {
+	//TODO: Убирать токен из кеша
 	return us.userRepository.DeleteToken(token)
 }
 
