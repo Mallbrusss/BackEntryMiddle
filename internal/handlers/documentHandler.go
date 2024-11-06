@@ -114,7 +114,7 @@ func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 	document, err := dh.DocumentService.GetDocumentByID(documentID, user.Login)
 	if err != nil {
 
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusInternalServerError)})
+		return c.JSON(http.StatusNotFound, echo.Map{"error": dh.errRes.GetErrorResponse(http.StatusNotFound)})
 	}
 
 	if document.File {
