@@ -38,5 +38,5 @@ func (ur *UserRepository) DeleteUser(user *models.User) error {
 }
 
 func (ur *UserRepository) DeleteToken(token string) error {
-	return ur.db.Where("token = ?", token).Delete(&models.User{}).Error
+	return ur.db.Model(&models.User{}).Where("token = ?", token).Update("token", nil).Error
 }

@@ -6,37 +6,46 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-var ctx = context.Background()
+const maxRetries = 10
+const retryInterval = 5 * time.Second
 
-func InitRedisCl() *redis.Client {
+func InitRedisCl() (*redis.Client, error) {
+	var rdb *redis.Client
+	var err error
+	ctx := context.Background()
+
 	rhost := os.Getenv("APP_REDIS_HOST")
 	rport := os.Getenv("APP_REDIS_PORT")
-	// ruser := os.Getenv("REDIS_USER")
 	rpassword := os.Getenv("APP_REDIS_PASSWORD")
-
 	rDB, err := strconv.Atoi(os.Getenv("APP_REDIS_DB"))
 	if err != nil {
 		rDB = 0
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", rhost, rport),
-		Password: rpassword,
-		DB:       rDB,
-	})
+	for i := 0; i < maxRetries; i++ {
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%s", rhost, rport),
+			Password: rpassword, // пустая строка для без пароля
+			DB:       rDB,
+		})
 
-	_, errR := rdb.Ping(ctx).Result()
-	if errR != nil {
-		// log.Println("error conect to redis:", errR)
-		// return nil
+		// Проверяем соединение с Redis
+		_, err = rdb.Ping(ctx).Result()
+		if err == nil {
+			// Успешное подключение, выходим из цикла
+			return rdb, nil
+		}
 
-		log.Fatal(errR)
+		// Логируем ошибку и ждем перед повторной попыткой
+		log.Printf("Ошибка подключения к Redis: %v. Попытка %d из %d", err, i+1, maxRetries)
+		time.Sleep(retryInterval)
 	}
 
-	log.Println("Success connect to Redis")
-	return rdb
+	// Если попытки закончились и ошибка осталась, возвращаем ошибку
+	return nil, fmt.Errorf("не удалось подключиться к Redis после %d попыток: %v", maxRetries, err)
 }

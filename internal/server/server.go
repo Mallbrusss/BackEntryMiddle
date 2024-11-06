@@ -5,8 +5,6 @@ import (
 	"os"
 
 	"github.com/Mallbrusss/BackEntryMiddle/internal/handlers"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 
 	// customMiddleware "github.com/Mallbrusss/BackEntryMiddle/internal/middleware"
 	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
@@ -19,20 +17,25 @@ import (
 )
 
 type Server struct {
-	e   *echo.Echo
-	db  *gorm.DB
-	rdb *redis.Client
+	e *echo.Echo
 }
 
 func NewServer() *Server {
 	return &Server{
-		e:   echo.New(),
-		db:  inPg.InitDB(),
-		rdb: inRdb.InitRedisCl(),
+		e: echo.New(),
 	}
 }
 
 func (s *Server) Run() {
+	db, err := inPg.InitDB()
+	if err != nil {
+		log.Fatal("Error connect to database")
+	}
+
+	rdb, err := inRdb.InitRedisCl()
+	if err != nil {
+		log.Fatal("Error connect to redis")
+	}
 
 	// create dir
 	uploadDir := "uploads/documents"
@@ -41,11 +44,11 @@ func (s *Server) Run() {
 	}
 
 	// service initialization
-	userRepo := repository.NewUserRepository(s.db)
+	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	userHandlers := handlers.NewUserHandlers(userService)
-	docRepo := repository.NewDocumentRepository(s.db)
-	docService := service.NewDocumentService(docRepo, s.rdb, uploadDir)
+	docRepo := repository.NewDocumentRepository(db)
+	docService := service.NewDocumentService(docRepo, rdb, uploadDir)
 	docHandler := handlers.NewDocumentHandler(docService)
 
 	// using middleware
@@ -60,9 +63,9 @@ func (s *Server) Run() {
 	// document endpoints
 	s.e.POST("/api/docs", docHandler.AuthMiddleWare()(docHandler.UploadDocument))
 	s.e.GET("/api/docs", docHandler.AuthMiddleWare()(docHandler.GetDocuments))
-	// s.e.HEAD("/api/docs", )// TODO: Доделать
+	s.e.HEAD("/api/docs", docHandler.HeadDocument)
 	s.e.GET("/api/docs/:id", docHandler.AuthMiddleWare()(docHandler.GetDocumentByID))
-	// s.e.HEAD("/api/docs/:id", ) // TODO: Доделать
+	s.e.HEAD("/api/docs/:id", docHandler.HeadDocument)
 	s.e.DELETE("/api/docs/:id", docHandler.AuthMiddleWare()(docHandler.DeleteDocument))
 
 	s.e.Logger.Fatal(s.e.Start(":8080"))

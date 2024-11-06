@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/Mallbrusss/BackEntryMiddle/models"
 
@@ -11,9 +12,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// const envPathToStorageEnv string = "./../../.env"
+const maxRetries = 10
+const retryInterval = 5 * time.Second
 
-func InitDB() *gorm.DB {
+func InitDB() (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
 	host := os.Getenv("APP_POSTGRES_HOST")
 	port := os.Getenv("APP_POSTGRES_PORT")
 	user := os.Getenv("APP_POSTGRES_USER")
@@ -22,9 +27,14 @@ func InitDB() *gorm.DB {
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dBname, port)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Cannot connect to db: %v", err)
+	for i := 0; i < 10; i++ {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+
+		log.Printf("Ошибка подключения к базе данных: %v. Попытка %d из %d", err, i+1, maxRetries)
+		time.Sleep(retryInterval)
 	}
 
 	err = db.AutoMigrate(&models.User{})
@@ -43,5 +53,6 @@ func InitDB() *gorm.DB {
 	}
 
 	log.Println("Success connect to Postgres")
-	return db
+
+	return db, err
 }

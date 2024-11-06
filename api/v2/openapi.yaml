@@ -137,7 +137,7 @@ paths:
                 - meta
       parameters:
         - in: header
-          name: Authorized
+          name: Authorization
           required: true
           description: Токен пользователя для авторизации
           schema:
@@ -180,7 +180,7 @@ paths:
       summary: Получение списка документов
       parameters:
         - in: header
-          name: Authorized
+          name: Authorization
           required: true
           description: Токен пользователя для авторизации
           schema:
@@ -279,7 +279,7 @@ paths:
           schema:
             type: string
         - in: header
-          name: Authorized
+          name: Authorization
           required: true
           description: Токен пользователя для авторизации
           schema:
@@ -322,7 +322,7 @@ paths:
       summary: Удаление документа
       parameters:
         - in: header
-          name: Authorized
+          name: Authorization
           required: true
           description: Токен пользователя для авторизации
           schema:

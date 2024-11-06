@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Mallbrusss/BackEntryMiddle/models"
 
@@ -48,9 +49,17 @@ func (dr *DocumentRepository) CreateDocument(document *models.Document, grant []
 
 func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, limit int) ([]models.Document, error) {
 	var documents []models.Document
+	user, err := dr.FindByLogin(login)
+	if err != nil {
+		return nil, err
+	}
+
 	query := dr.db.Model(&models.Document{}).
-		Joins("LEFT JOIN document_accesses ON documents.id = document_accesses.doc_id").
-		Where("documents.public = TRUE OR document_accesses.login = ?", login)
+		Joins("LEFT JOIN document_accesses AS da ON documents.id = da.doc_id")
+
+	if !user.IsAdmin {
+		query = query.Where("documents.public = TRUE OR da.login = ?", login)
+	}
 
 	for k, v := range filter {
 		query = query.Where(fmt.Sprintf("documents.%s = ?", k), v)
@@ -60,10 +69,13 @@ func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, 
 		query = query.Limit(limit)
 	}
 
-	err := query.Order("name ASC, created_at DESC").Find(&documents).Error
+	err = query.Order("documents.name ASC, documents.created_at DESC").Find(&documents).Error
+	if err != nil {
+		return nil, err
+	}
 
-	var grants []models.DocumentAccess
 	if len(documents) > 0 {
+		var grants []models.DocumentAccess
 		var documentIDs []string
 		for _, doc := range documents {
 			documentIDs = append(documentIDs, doc.ID)
@@ -84,8 +96,9 @@ func (dr *DocumentRepository) GetDocuments(login string, filter map[string]any, 
 			documents[i].Grant = logins
 		}
 	}
-
-	return documents, err
+	log.Println(documents)
+	fmt.Println(query.Statement.SQL.String())
+	return documents, nil
 }
 
 func (dr *DocumentRepository) GetDocumentAccessByID(documentID string) ([]models.DocumentAccess, error) {
@@ -93,7 +106,7 @@ func (dr *DocumentRepository) GetDocumentAccessByID(documentID string) ([]models
 
 	err := dr.db.Model(&models.DocumentAccess{}).
 		Where("doc_id = ?", documentID).
-		Find(&documentID).Error
+		Find(&grants).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("error fetching document accesses: %w", err)
@@ -104,11 +117,20 @@ func (dr *DocumentRepository) GetDocumentAccessByID(documentID string) ([]models
 
 func (dr *DocumentRepository) GetDocumentByID(documentID, login string) (*models.Document, error) {
 	var document models.Document
-	err := dr.db.Model(&models.Document{}).
-		Joins("LEFT JOIN document_accesses ON documents.id = document_accesses.doc_id").
-		Joins("LEFT JOIN user ON document_accesses.login = user.login").
-		Where("documents.id = ? AND (user.is_admin = TRUE OR documents.public = TRUE OR document_accesses.login = ?)", documentID, login).
-		First(&document).Error
+
+	user, err := dr.FindByLogin(login)
+	if err != nil {
+		return nil, err
+	}
+
+	query := dr.db.Model(&models.Document{}).
+		Joins("LEFT JOIN document_accesses AS da ON documents.id = da.doc_id")
+
+	if !user.IsAdmin {
+		query = query.Where("documents.public = TRUE OR da.login = ?", login)
+	}
+
+	err = query.Where("documents.id = ?", documentID).First(&document).Error
 	if err != nil {
 		return nil, err
 	}
