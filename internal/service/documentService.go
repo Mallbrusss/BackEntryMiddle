@@ -86,6 +86,7 @@ func (ds *DocumentService) UploadDocument(document *models.Document, fileData []
 			return
 		}
 
+		//TODO: Перенести работу с кешом в отдельный сервис, вызывать через middleware
 		err = ds.rdb.Set(context.Background(), document.ID, jsonData, 10*time.Second).Err()
 		if err != nil {
 			errorCh <- fmt.Errorf("error saving document to Redis: %w", err)
@@ -168,6 +169,7 @@ func (ds *DocumentService) DeleteDocumentFromSystem(document *models.Document) e
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		//TODO: Перенести работу с кешом в отдельный сервис, вызывать через middleware
 		ctx := context.Background()
 		err := ds.rdb.Del(ctx, document.ID).Err()
 		if err != nil {
@@ -192,6 +194,7 @@ func (ds *DocumentService) DeleteDocumentFromSystem(document *models.Document) e
 func (ds *DocumentService) GetDocumentByID(documentID, login string) (*models.Document, error) {
 	ctx := context.Background()
 
+	//TODO: Перенести работу с кешом в отдельный сервис, вызывать через middleware
 	cachedDoc, err := ds.rdb.Get(ctx, documentID).Result()
 	if err == redis.Nil {
 		document, err := ds.docRepo.GetDocumentByID(documentID, login)
