@@ -10,7 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	// customMiddleware "github.com/Mallbrusss/BackEntryMiddle/internal/middleware"
 	"github.com/Mallbrusss/BackEntryMiddle/internal/repository"
 	"github.com/Mallbrusss/BackEntryMiddle/internal/service"
 	inPg "github.com/Mallbrusss/BackEntryMiddle/internal/storage/postgres"

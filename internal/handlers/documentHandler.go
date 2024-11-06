@@ -24,6 +24,7 @@ func NewDocumentHandler(documentService *service.DocumentService) *DocumentHandl
 	}
 }
 
+// UploadDocument - обработчик для загрузки документа
 func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 	mpform, err := c.MultipartForm()
 	if err != nil {
@@ -85,6 +86,7 @@ func (dh *DocumentHandler) UploadDocument(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+// DeleteDocument - обработчик для удаления документа
 func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
 	user, ok := c.Get("user").(*models.User)
 	if !ok || user.Login == "" {
@@ -103,6 +105,7 @@ func (dh *DocumentHandler) DeleteDocument(c echo.Context) error {
 	}})
 }
 
+// GetDocumentByID - обработчик для получения выборочного документа
 func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 	user, ok := c.Get("user").(*models.User)
 	if !ok || user.Login == "" {
@@ -125,6 +128,7 @@ func (dh *DocumentHandler) GetDocumentByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"data": document})
 }
 
+// GetDocuments - обработчик для получения доступных документов 
 func (dh *DocumentHandler) GetDocuments(c echo.Context) error {
 	login := c.QueryParam("login")
 	user, ok := c.Get("user").(*models.User)
@@ -154,6 +158,7 @@ func (dh *DocumentHandler) GetDocuments(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"data": map[string]any{"docs": documents}})
 }
 
+// AuthMiddleWare - middleware для аутентификации пользователя
 func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -171,6 +176,7 @@ func (dh *DocumentHandler) AuthMiddleWare() echo.MiddlewareFunc {
 	}
 }
 
+// HeadDocument - обработчик для получения метаданных
 func (dh *DocumentHandler) HeadDocument(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, "application/json")
 	c.Response().Header().Set(echo.HeaderAccept, "OK")

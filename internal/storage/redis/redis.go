@@ -14,6 +14,7 @@ import (
 const maxRetries = 10
 const retryInterval = 5 * time.Second
 
+// InitRedisCl - инициализирует клиент редиса
 func InitRedisCl() (*redis.Client, error) {
 	var rdb *redis.Client
 	var err error
