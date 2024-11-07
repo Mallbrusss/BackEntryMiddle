@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -54,15 +55,18 @@ func TestRegister(t *testing.T) {
 	mockUserService := new(MockUserService)
 	mockErrorResponse := new(MockErrorResponse)
 
+	mockUserService.On("Register", "EgorBogachev", "Testp123!", true).
+		Return(&models.User{Login: "EgorBogachev", Password: "Testp123!"}, nil)
+
 	mockErrorResponse.On("GetErrorResponse", http.StatusBadRequest).
 		Return(models.ErrorResponse{
-			Code: 123, 
+			Code: 123,
 			Text: "So sad",
 		})
 
 	handler := UserHandler{
-		UserService: mockUserService, 
-		errRes: mockErrorResponse,
+		UserService: mockUserService,
+		errRes:      mockErrorResponse,
 	}
 
 	t.Run("Bad Request", func(t *testing.T) {
@@ -75,6 +79,7 @@ func TestRegister(t *testing.T) {
 		e := echo.New()
 		reqBody, _ := json.Marshal(req)
 		request := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(reqBody))
+		// request.Header.Set("Content-Type", "application/json")
 		recorder := httptest.NewRecorder()
 		c := e.NewContext(request, recorder)
 
@@ -90,4 +95,51 @@ func TestRegister(t *testing.T) {
 
 		}
 	})
+
+	t.Run("Success Request", func(t *testing.T) {
+		req := models.User{
+			Login:    "EgorBogachev",
+			Password: "Testp123!",
+			Token:    "",
+		}
+
+		e := echo.New()
+		reqBody, _ := json.Marshal(req)
+		request := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(reqBody))
+		request.Header.Set("Content-Type", "application/json")
+		recorder := httptest.NewRecorder()
+		c := e.NewContext(request, recorder)
+
+		if assert.NoError(t, handler.Register(c)) {
+			assert.Equal(t, http.StatusOK, recorder.Code)
+
+			if recorder.Body.Len() == 0 {
+				t.Fatalf("Response body is empty")
+			}
+
+			fmt.Println("Response body:", recorder.Body.String())
+
+			var response map[string]any
+			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+				t.Fatalf("Error unmarshalling response body: %v", err)
+			}
+
+			if errorField, ok := response["error"]; ok {
+				t.Fatalf("Expected 'response' but got error: %v", errorField)
+			}
+
+			responseData, ok := response["response"].(map[string]any)
+			if !ok {
+				t.Fatalf("Expected 'response' to be a map, got %T", response["response"])
+			}
+
+			assert.Equal(t, "EgorBogachev", responseData["login"].(string))
+		}
+	})
 }
+
+// func TestAuthenticate(t *testing.T){
+// 	mockUserService := new(MockUserService)
+// 	mockErrorResponse := new(MockErrorResponse)
+
+// }
