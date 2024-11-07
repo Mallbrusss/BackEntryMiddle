@@ -13,7 +13,7 @@ import (
 
 type UserHandler struct {
 	UserService service.UserServiceInterface
-	errRes      *models.ErrorResponse
+	errRes      models.ErrorResponseInterface
 }
 
 func NewUserHandlers(userService *service.UserService) *UserHandler {

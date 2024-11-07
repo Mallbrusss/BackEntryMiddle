@@ -2,13 +2,17 @@ package models
 
 import "net/http"
 
-// ErrorResponse - модель пользователя
+type ErrorResponseInterface interface {
+	GetErrorResponse(code int) ErrorResponse
+}
+
+// ErrorResponse - модель ошибки
 type ErrorResponse struct {
 	Code int    `json:"code"`
 	Text string `json:"text"`
 }
 
-// NewErrorResponse - возвращает экземпляр кбизнес ошибки (по тз)
+// NewErrorResponse - возвращает экземпляр бизнес ошибки (по тз)
 func NewErrorResponse() *ErrorResponse {
 	return &ErrorResponse{}
 }
