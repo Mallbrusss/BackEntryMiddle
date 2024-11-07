@@ -55,9 +55,6 @@ func TestRegister(t *testing.T) {
 	mockUserService := new(MockUserService)
 	mockErrorResponse := new(MockErrorResponse)
 
-	mockUserService.On("Register", "EgorBogachev", "Testp123!", true).
-		Return(&models.User{Login: "EgorBogachev", Password: "Testp123!"}, nil)
-
 	mockErrorResponse.On("GetErrorResponse", http.StatusBadRequest).
 		Return(models.ErrorResponse{
 			Code: 123,
@@ -79,9 +76,10 @@ func TestRegister(t *testing.T) {
 		e := echo.New()
 		reqBody, _ := json.Marshal(req)
 		request := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(reqBody))
-		// request.Header.Set("Content-Type", "application/json")
 		recorder := httptest.NewRecorder()
 		c := e.NewContext(request, recorder)
+
+
 
 		if assert.NoError(t, handler.Register(c)) {
 			assert.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -97,6 +95,10 @@ func TestRegister(t *testing.T) {
 	})
 
 	t.Run("Success Request", func(t *testing.T) {
+
+		mockUserService.On("Register", "EgorBogachev", "Testp123!", true).
+		Return(&models.User{Login: "EgorBogachev", Password: "Testp123!"}, nil)
+
 		req := models.User{
 			Login:    "EgorBogachev",
 			Password: "Testp123!",
