@@ -27,9 +27,8 @@ func (uh UserHandler) Register(c echo.Context) error {
 	isAdmin := false
 	adminToken := os.Getenv("ADMIN_TOKEN")
 	if err := c.Bind(&req); err != nil {
-
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error":  uh.errRes.GetErrorResponse(http.StatusBadRequest),
+			"error": uh.errRes.GetErrorResponse(http.StatusBadRequest),
 		})
 	}
 
