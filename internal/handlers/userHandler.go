@@ -13,7 +13,7 @@ import (
 
 type UserHandler struct {
 	UserService service.UserServiceInterface
-	errRes      *models.ErrorResponse
+	errRes      models.ErrorResponseInterface
 }
 
 func NewUserHandlers(userService *service.UserService) *UserHandler {
@@ -29,7 +29,7 @@ func (uh UserHandler) Register(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error": echo.Map{"error": uh.errRes.GetErrorResponse(http.StatusBadRequest)},
+			"error":  uh.errRes.GetErrorResponse(http.StatusBadRequest),
 		})
 	}
 
