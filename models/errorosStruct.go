@@ -19,8 +19,8 @@ func NewErrorResponse() *ErrorResponse {
 
 // ErrorMap - маппинг ошибок
 var ErrorMap = map[int]ErrorResponse{
-	http.StatusUnauthorized:        {Code: 123, Text: "Пользователь не зарегестрирован"},
-	http.StatusNotFound:            {Code: 123, Text: "Пользователь не найден"},
+	http.StatusUnauthorized:        {Code: 123, Text: "Не зарегестрирован"},
+	http.StatusNotFound:            {Code: 123, Text: "Не найдено"},
 	http.StatusForbidden:           {Code: 123, Text: "Отказано в доступе"},
 	http.StatusInternalServerError: {Code: 123, Text: "Это грустно"},
 }
