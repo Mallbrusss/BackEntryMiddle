@@ -81,12 +81,12 @@ func TestRegister(t *testing.T) {
 		if assert.NoError(t, handler.Register(c)) {
 			assert.Equal(t, http.StatusBadRequest, recorder.Code)
 
-			var response models.ErrorResponse
+			var response map[string]any
+			_ = json.Unmarshal(recorder.Body.Bytes(), &response)
 
-			_ = json.Unmarshal(recorder.Body.Bytes(), &response.Text)
-
-			assert.Equal(t, "So sad", response.Text)
-			assert.Equal(t, 123, response.Code)
+			errorResp := response["error"].(map[string]any)
+			assert.Equal(t, 123.0, errorResp["code"].(float64))
+			assert.Equal(t, "So sad", errorResp["text"].(string))
 
 		}
 	})
